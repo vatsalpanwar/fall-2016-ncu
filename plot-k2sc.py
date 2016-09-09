@@ -63,3 +63,41 @@ for i in Q10_file:
 com_ID =  [i for i in set(ktwoID) & set(ktwo_detID)]      #list of IDs common to both original and detrended list of files-
                                                           #essentially the ones that have to be analysed
 
+#Make a list of tuples containing names of common files from both folder
+
+ktwofilelist = zip([np.float(k) for k in ktwoID],ktwofilelist)
+ktwo_detfilelist = zip([np.float(l) for l in ktwo_detID],ktwo_detfilelist)
+
+
+ktwofilelist.sort(key=lambda x: x[0])
+ktwo_detfilelist.sort(key=lambda x: x[0])
+
+print len(ktwofilelist)
+print len(ktwo_detfilelist)
+
+comlist = zip([k[1] for k in ktwofilelist],[k[1] for k in ktwo_detfilelist])
+
+print comlist
+
+
+os.chdir("/home/vatsal/UThesis/K2/data/kepler")
+nowpath = os.getcwd()
+
+for k,l in comlist:
+
+    k = k.replace('\n','')
+    data1 = fits.open(nowpath+'/ktwo/'+k)
+    dat=data1[1].data
+    pdcsap_flux = dat['PDCSAP_FLUX']
+    time_raw = dat['TIME']
+    
+    
+    l = l.replace('\n','')
+    data2 = fits.open(nowpath+'/ktwo-detrended/'+l)
+    dat=data2[1].data
+    time_det = dat['time']
+    flux_det = dat['flux']
+    trtime = dat['trtime']
+    trposi = dat['trposi']
+    x_cor = dat['x']
+    y_cor = dat['y']
