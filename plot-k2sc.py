@@ -83,13 +83,16 @@ print comlist
 os.chdir("/home/vatsal/UThesis/K2/data/kepler")
 nowpath = os.getcwd()
 
-for k,l in comlist:
-
+for k,l in comlist[0:10]:
+    
+    keplerid = re.findall('\d+',k)[0]
     k = k.replace('\n','')
     data1 = fits.open(nowpath+'/ktwo/'+k)
     dat=data1[1].data
     pdcsap_flux = dat['PDCSAP_FLUX']
     time_raw = dat['TIME']
+    
+    mnan1 = -np.isnan(pdcsap_flux)
     
     
     l = l.replace('\n','')
@@ -97,7 +100,37 @@ for k,l in comlist:
     dat=data2[1].data
     time_det = dat['time']
     flux_det = dat['flux']
-    trtime = dat['trtime']
-    trposi = dat['trposi']
+    trend_t = dat['trtime']
+    trend_p = dat['trposi']
     x_cor = dat['x']
     y_cor = dat['y']
+    
+    mnan2 = -np.isnan(flux_det)
+    
+#     fdata = Table([time_raw[mnan1],rhk, logrhk], names=['jdb', 'rhk', 'logrhk'])
+#     ascii.write(fdata,'/home/vatsal/LAM/manual_analysis/HD209100/merged_data/HD209100_harps_rhk.rdb' , format='rdb')
+    
+    
+    fig, ax = plt.subplots(4, sharex=True)
+    
+    #Plotting the Raw flux from original ktwo files
+    ax[0].plot(time_raw[mnan1],100.*norm(pdcsap_flux[mnan1]),'k.-')
+    ax[0].set_ylabel('Raw Relative flux[%]')
+    ax[0].set_title(keplerid)
+    
+    #Plotting the supposedly detrended flux from the EPIC files
+    ax[1].plot(time_det[mnan2],100.*norm(flux_det[mnan2]),'k.-')
+    ax[1].set_ylabel('f[%]')
+    
+    #Plotting the light curves with corrections for systematics
+    ax[2].plot(time_det[mnan2],100.*norm(flux_det[mnan2])-100.*norm(trend_p[mnan2]),'k.-')
+    ax[2].plot(time_det[mnan2],100.*norm(trend_t[mnan2]),'r')
+    ax[2].set_ylabel('f-m(X)[%]')
+    
+    #Plotting the light curves with corrections for both systematics and intrinsic stellar variations
+    ax[3].plot(time_det[mnan2],100.*norm(flux_det[mnan2])-100.*norm(trend_p[mnan2])-100.*norm(trend_t[mnan2]),'k.-')
+    ax[3].set_ylabel('f-m(X)-m(t)[%]')
+    ax[3].set_xlabel('Time')
+    
+    plt.show()
+    
